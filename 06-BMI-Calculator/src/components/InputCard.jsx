@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import MetricInputField from "./MetricInputField";
 import ImperialInputField from "./ImperialInputField";
 import Result from "./Result";
+import ErrorModal from "./ErrorModal";
+import BMIChart from "./BMIChart";
 
 export default function InputCard() {
   const [unit, setUnit] = useState("metric");
@@ -16,18 +18,26 @@ export default function InputCard() {
   const [heightIn, setHeightIn] = useState("");
   const [weightLb, setWeightLb] = useState("");
 
+  const errorModal=useRef();
+
   function calculateBMI() {
     let heightM;
     let weightKgFinal;
 
     if (unit === "metric") {
-      if (!heightCm || !weightKg || heightCm <= 0) return;
+      if (!heightCm || !weightKg || heightCm <= 0){
+        errorModal.current.open("Please enter valid height (cm) and weight (kg).");
+        return;
+      }
       heightM = heightCm / 100;
       weightKgFinal = weightKg;
     }
 
     if (unit === "imperial") {
-      if (!heightFt || !heightIn || !weightLb) return;
+      if (!heightFt || !heightIn || !weightLb){
+        errorModal.current.open("Please enter valid height (ft/in) and weight (lb).");
+        return;
+      } 
       const totalInches = Number(heightFt) * 12 + Number(heightIn);
       heightM = (totalInches * 2.54) / 100;
       weightKgFinal = weightLb * 0.453592;
@@ -39,6 +49,7 @@ export default function InputCard() {
 
   return (
     <div className="input-card">
+      <ErrorModal ref={errorModal}/>
       <div className="unit-selector">
         <p>Units:</p>
 
@@ -87,6 +98,7 @@ export default function InputCard() {
         Calculate
       </button>
       {bmi && <Result bmiValue={bmi}/>}
+      {bmi && <BMIChart bmi={bmi} />}
     </div>
   );
 }
